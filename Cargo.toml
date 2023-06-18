@@ -1,7 +1,11 @@
 [package]
 name = "exms"
+authors = ["Author => joan"]
+description = "Get statistics and compare exams results"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/Joanjajas/exms"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
