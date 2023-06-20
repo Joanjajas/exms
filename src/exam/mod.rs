@@ -90,6 +90,11 @@ impl Exam {
     /// exam.sort_by_grade();
     /// ```
     pub fn sort_by_grade(&mut self) {
+        // Sort students by name so that students with the same grade are sorted
+        // alphabetically
+        Exam::sort_by_alphabetic_order(self);
+
+        // Sort students by grade
         self.students
             .sort_by(|a, b| b.grade.partial_cmp(&a.grade).unwrap_or(Ordering::Equal))
     }
