@@ -1,4 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+
 use exms::exam::Exam;
 
 fn file_parsing_bench(c: &mut Criterion) {

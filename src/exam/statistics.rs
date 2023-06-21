@@ -1,5 +1,6 @@
-use crate::exam::Student;
 use std::cmp::Ordering;
+
+use crate::exam::Student;
 
 pub fn mean(students: &[Student]) -> f32 {
     let (sum, count) = students
@@ -7,14 +8,14 @@ pub fn mean(students: &[Student]) -> f32 {
         .fold((0.0, 0.0), |(sum, count), s| (sum + s.grade, count + 1.0));
 
     if count == 0.0 {
-        0.
+        0.0
     } else {
         sum / count
     }
 }
 
 pub fn passed_students(students: &[Student]) -> u32 {
-    students.iter().filter(|s| s.grade >= 5.).count() as u32
+    students.iter().filter(|s| s.grade >= 5.0).count() as u32
 }
 
 pub fn calculate_percentiles(students: &mut [Student]) {
@@ -65,32 +66,45 @@ pub fn calculate_percentiles(students: &mut [Student]) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     fn students() -> Vec<Student> {
         vec![
-            Student::new("Joan Beltrán Peris", 4.6),
+            Student::new("Joan Beltrán Peris", 4.65),
             Student::new("Jose Abad Martínez", 3.6),
             Student::new("David Jiménez Hidalgo", 7.94),
-            Student::new("Rubén Martínez Olgado", 8.96),
-            Student::new("Jorge Gómez Fuentes", 6.5),
+            Student::new("Jorge García Martínez", 5.03),
+            Student::new("Adrián Gómez García", 1.96),
         ]
     }
 
     #[test]
-    fn mean_test() {
+    fn test_mean() {
         let students = students();
         let mean = mean(&students);
 
-        assert_approx_eq!(mean, 6.32)
+        assert_approx_eq!(mean, 4.636)
     }
 
     #[test]
-    fn passed_students_test() {
+    fn test_passed_students() {
         let students = students();
         let passed_students = passed_students(&students);
 
-        assert_eq!(passed_students, 3)
+        assert_eq!(passed_students, 2)
+    }
+
+    #[test]
+    fn test_percentile() {
+        let mut students = students();
+        calculate_percentiles(&mut students);
+
+        assert_eq!(students[0].percentile, 50.0);
+        assert_eq!(students[1].percentile, 25.0);
+        assert_eq!(students[2].percentile, 100.0);
+        assert_eq!(students[3].percentile, 75.0);
+        assert_eq!(students[4].percentile, 0.0);
     }
 }

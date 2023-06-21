@@ -1,18 +1,20 @@
-pub mod statistics;
-mod student;
+use std::cmp::Ordering;
+use std::path::Path;
 
+use colored::Colorize;
+use prettytable::{format, row, Table};
+
+use statistics::{calculate_percentiles, mean, passed_students};
 pub use student::Student;
 
 use crate::error::Error;
 use crate::input::parse_file;
-use colored::Colorize;
-use prettytable::{format, row, Table};
-use statistics::{calculate_percentiles, mean, passed_students};
-use std::cmp::Ordering;
-use std::path::Path;
+
+pub mod statistics;
+mod student;
 
 pub struct Exam {
-    students: Vec<Student>,
+    pub students: Vec<Student>,
 }
 
 impl Exam {
@@ -33,7 +35,7 @@ impl Exam {
     /// let exam = Exam::from_student_vec(students);
     /// ```
     pub fn from_student_vec(mut students: Vec<Student>) -> Self {
-        // Calculate the percentiles of the students
+        // Calculate the percentile of each student
         calculate_percentiles(&mut students);
 
         // Create a new exam from the vector of students
@@ -88,6 +90,10 @@ impl Exam {
     ///
     /// let mut exam = Exam::from_student_vec(students);
     /// exam.sort_by_grade();
+    ///
+    /// assert_eq!(exam.students[0].grade, 7.94);
+    /// assert_eq!(exam.students[1].grade, 4.6);
+    /// assert_eq!(exam.students[2].grade, 3.6);
     /// ```
     pub fn sort_by_grade(&mut self) {
         // Sort students by name so that students with the same grade are sorted
@@ -115,7 +121,12 @@ impl Exam {
     ///
     /// let mut exam = Exam::from_student_vec(students);
     /// exam.sort_by_alphabetic_order();
+    ///
+    /// assert_eq!(exam.students[0].name, "David Jiménez Hidalgo");
+    /// assert_eq!(exam.students[1].name, "Joan Beltrán Peris");
+    /// assert_eq!(exam.students[2].name, "Jose Abad Martínez");
     /// ```
+    // TODO: make it work with accents
     pub fn sort_by_alphabetic_order(&mut self) {
         self.students.sort_by_key(|s| s.name.to_lowercase())
     }
@@ -136,7 +147,12 @@ impl Exam {
     /// ];
     ///
     /// let mut exam = Exam::from_student_vec(students);
-    /// exam.filter_by_name(&["joan", "jorge"]);
+    /// exam.filter_by_name(&["joan", "jorge", "jim"]);
+    ///
+    /// assert_eq!(exam.students.len(), 2);
+    /// assert_eq!(exam.students[0].name, "Joan Beltrán Peris");
+    /// assert_eq!(exam.students[1].name, "David Jiménez Hidalgo");
+
     /// ```
     pub fn filter_by_name<S: AsRef<str>>(&mut self, query: &[S]) {
         self.students.retain(|student| {
@@ -239,7 +255,7 @@ impl Exam {
         let passed_students = passed_students(&self.students);
         let failed_students = total_students - passed_students;
         let pass_percentage = if total_students > 0 {
-            (passed_students as f32 / total_students as f32) * 100.
+            (passed_students as f32 / total_students as f32) * 100.0
         } else {
             0.
         };
@@ -259,5 +275,132 @@ impl Exam {
 
         title_table.printstd();
         table.printstd();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::io::Write;
+
+    use tempfile::tempdir;
+
+    use super::*;
+
+    fn students() -> Vec<Student> {
+        return vec![
+            Student::new_with_percentile("Joan Beltrán Peris", 4.65, 50.0),
+            Student::new_with_percentile("Jose Abad Martínez", 3.6, 25.0),
+            Student::new_with_percentile("David Jiménez Hidalgo", 7.94, 100.0),
+            Student::new_with_percentile("Jorge García Martínez", 5.03, 75.0),
+            Student::new_with_percentile("Adrián Gómez García", 1.96, 0.0),
+        ];
+    }
+
+    #[test]
+    fn test_from_student_vec() {
+        let students = students();
+        let exam = Exam::from_student_vec(students.clone());
+
+        assert_eq!(exam.students, students);
+    }
+
+    #[test]
+    fn test_from_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.toml");
+
+        let mut file = File::create(&file_path).unwrap();
+        file.write_all(
+            r#"
+            [students]
+            "Joan Beltrán Peris" = 4.65
+            "Jose Abad Martínez" = 3.6
+            "David Jiménez Hidalgo" = 7.94
+            "Jorge García Martínez" = 5.03
+            "Adrián Gómez García" = 1.96
+            "#
+            .as_bytes(),
+        )
+        .unwrap();
+
+        let exam = Exam::from_file(&file_path).unwrap();
+        let students = students();
+
+        assert_eq!(exam.students, students);
+    }
+
+    #[test]
+    fn test_sort_by_grade() {
+        let students = students();
+        let mut exam = Exam::from_student_vec(students);
+
+        exam.sort_by_grade();
+
+        assert_eq!(exam.students[0].grade, 7.94);
+        assert_eq!(exam.students[1].grade, 5.03);
+        assert_eq!(exam.students[2].grade, 4.65);
+        assert_eq!(exam.students[3].grade, 3.6);
+        assert_eq!(exam.students[4].grade, 1.96);
+    }
+
+    #[test]
+    fn test_sort_by_alphabetic_order() {
+        let students = students();
+        let mut exam = Exam::from_student_vec(students);
+
+        exam.sort_by_alphabetic_order();
+
+        assert_eq!(exam.students[0].name, "Adrián Gómez García");
+        assert_eq!(exam.students[1].name, "David Jiménez Hidalgo");
+        assert_eq!(exam.students[2].name, "Joan Beltrán Peris");
+        assert_eq!(exam.students[3].name, "Jorge García Martínez");
+        assert_eq!(exam.students[4].name, "Jose Abad Martínez");
+    }
+
+    #[test]
+    fn test_filter_by_name() {
+        let students = students();
+        let mut exam = Exam::from_student_vec(students);
+
+        exam.filter_by_name(&["joan", "abad", "jim"]);
+
+        assert_eq!(exam.students.len(), 3);
+        assert_eq!(exam.students[0].name, "Joan Beltrán Peris");
+        assert_eq!(exam.students[1].name, "Jose Abad Martínez");
+        assert_eq!(exam.students[2].name, "David Jiménez Hidalgo");
+    }
+
+    #[test]
+    fn test_filter_by_file() {
+        let students = students();
+        let mut exam = Exam::from_student_vec(students.clone());
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("filter.toml");
+        let mut filter_file = File::create(&file_path).unwrap();
+
+        filter_file
+            .write_all(
+                r#"
+                [students]
+                "Joan Beltrán Peris" = 4.65
+                "Adrián Gómez García" = 1.96
+                "#
+                .as_bytes(),
+            )
+            .unwrap();
+
+        exam.filter_by_file(&file_path).unwrap();
+
+        assert_eq!(exam.students.len(), 2);
+        assert_eq!(
+            exam.students[0],
+            Student::new_with_percentile("Joan Beltrán Peris", 4.65, 50.0)
+        );
+        assert_eq!(
+            exam.students[1],
+            Student::new_with_percentile("Adrián Gómez García", 1.96, 0.0)
+        );
     }
 }

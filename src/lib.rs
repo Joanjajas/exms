@@ -62,7 +62,7 @@
 //! Alternatively you can use your own parsing logic for any file you want to
 //! parse, parsing the file content into a `Vec<Student>` and creating a new
 //! `Exam` using the
-//! [Exam::from_student_vec()](crate::exam::Exam::from_student_vec) function.
+//! [Exam::from_student_vec()](exam::Exam::from_student_vec) function.
 //!
 //! # Examples
 //!
