@@ -12,6 +12,12 @@ pub(crate) trait WithPath<T, E> {
     fn with_path<P: AsRef<Path>>(self, path: P) -> Result<T, (E, P)>;
 }
 
+impl<T, E> WithPath<T, E> for Result<T, E> {
+    fn with_path<P: AsRef<Path>>(self, path: P) -> Result<T, (E, P)> {
+        self.map_err(|err| (err, path))
+    }
+}
+
 /// Enum representing all errors that can occur while parsing a file
 #[derive(Debug)]
 pub enum ParseError {
@@ -77,12 +83,6 @@ impl fmt::Display for ParseError {
                 )
             }
         }
-    }
-}
-
-impl<T, E> WithPath<T, E> for Result<T, E> {
-    fn with_path<P: AsRef<Path>>(self, path: P) -> Result<T, (E, P)> {
-        self.map_err(|err| (err, path))
     }
 }
 
