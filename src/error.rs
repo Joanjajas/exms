@@ -67,8 +67,9 @@ impl fmt::Display for ParseError {
             ParseError::UnsupportedFormat(path) => {
                 write!(
                     f,
-                    "Error while parsing file {}: unsupported file format: {}",
+                    "Error while parsing file {}: unsupported file format: {}{}",
                     path.to_str().unwrap_or_default().yellow(),
+                    ".".yellow(),
                     path.extension()
                         .and_then(OsStr::to_str)
                         .unwrap_or_default()
