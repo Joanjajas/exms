@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 
 use crate::exam::Student;
 
+/// Calculate the mean grade of a given set of students.
 pub fn mean(students: &[Student]) -> f32 {
     let (sum, count) = students
         .iter()
@@ -14,10 +15,12 @@ pub fn mean(students: &[Student]) -> f32 {
     }
 }
 
+/// Calculates the number of students that passed an exam.
 pub fn passed_students(students: &[Student]) -> u32 {
     students.iter().filter(|s| s.grade >= 5.0).count() as u32
 }
 
+/// Calculates the percentile of each student grade in a given set of students.
 pub fn calculate_percentiles(students: &mut [Student]) {
     let total_students = students.len();
 

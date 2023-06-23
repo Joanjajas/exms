@@ -7,7 +7,7 @@ use prettytable::{format, row, Table};
 use statistics::{calculate_percentiles, mean, passed_students};
 pub use student::Student;
 
-use crate::error::Error;
+use crate::error::ParseError;
 use crate::input::parse_file;
 
 pub mod statistics;
@@ -63,7 +63,7 @@ impl Exam {
     ///     Ok(())
     /// }
     /// ```
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ParseError> {
         // Create a new vector of students from the file
         let mut students = parse_file(path.as_ref())?;
 
@@ -185,7 +185,7 @@ impl Exam {
     ///     Ok(())
     /// }
     /// ```
-    pub fn filter_by_file<P: AsRef<Path>>(&mut self, path: P) -> Result<(), Error> {
+    pub fn filter_by_file<P: AsRef<Path>>(&mut self, path: P) -> Result<(), ParseError> {
         let students = parse_file(path.as_ref())?;
         self.students.retain(|student| {
             students
@@ -289,11 +289,11 @@ mod tests {
 
     fn students() -> Vec<Student> {
         return vec![
-            Student::new_with_percentile("Joan Beltrán Peris", 4.65, 50.0),
-            Student::new_with_percentile("Jose Abad Martínez", 3.6, 25.0),
-            Student::new_with_percentile("David Jiménez Hidalgo", 7.94, 100.0),
-            Student::new_with_percentile("Jorge García Martínez", 5.03, 75.0),
-            Student::new_with_percentile("Adrián Gómez García", 1.96, 0.0),
+            Student::with_percentile("Joan Beltrán Peris", 4.65, 50.0),
+            Student::with_percentile("Jose Abad Martínez", 3.6, 25.0),
+            Student::with_percentile("David Jiménez Hidalgo", 7.94, 100.0),
+            Student::with_percentile("Jorge García Martínez", 5.03, 75.0),
+            Student::with_percentile("Adrián Gómez García", 1.96, 0.0),
         ];
     }
 
@@ -396,11 +396,11 @@ mod tests {
         assert_eq!(exam.students.len(), 2);
         assert_eq!(
             exam.students[0],
-            Student::new_with_percentile("Joan Beltrán Peris", 4.65, 50.0)
+            Student::with_percentile("Joan Beltrán Peris", 4.65, 50.0)
         );
         assert_eq!(
             exam.students[1],
-            Student::new_with_percentile("Adrián Gómez García", 1.96, 0.0)
+            Student::with_percentile("Adrián Gómez García", 1.96, 0.0)
         );
     }
 }
