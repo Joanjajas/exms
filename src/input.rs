@@ -5,7 +5,7 @@ use std::path::Path;
 use indexmap::map::IndexMap;
 use serde::Deserialize;
 
-use crate::error::{ParseError, WithPath};
+use crate::error::{ParseError, WithPath, ParseErrorKind};
 use crate::exam::Student;
 
 /// Struct used to deserialize TOML and JSON files into a `Vec<Student>`.
@@ -24,8 +24,8 @@ pub fn parse_file(path: &Path) -> Result<Vec<Student>, ParseError> {
     let exam_file: ExamFile = match file_extension {
         Some("toml") => toml::from_str(&file_content).with_path(path)?,
         Some("json") => serde_json::from_str(&file_content).with_path(path)?,
-        None => return Err(ParseError::MissingFormat(path.to_path_buf())),
-        _ => return Err(ParseError::UnsupportedFormat(path.to_path_buf())),
+        None => return Err(ParseError::new(ParseErrorKind::MissingFormat, path)),
+        _ => return Err(ParseError::new(ParseErrorKind::UnsupportedFormat, path)),
     };
 
     let students = exam_file
