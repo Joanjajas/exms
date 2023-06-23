@@ -72,7 +72,8 @@ mod tests {
             "Adrián Gómez García" = 1.96
             "#
             .as_bytes(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let parsed_students = parse_file(&file_path).unwrap();
         let students = students();
@@ -99,7 +100,8 @@ mod tests {
             }
             "#
             .as_bytes(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let parsed_students = parse_file(&file_path).unwrap();
         let students = students();

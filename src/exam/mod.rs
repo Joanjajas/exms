@@ -388,7 +388,8 @@ mod tests {
                 "Adrián Gómez García" = 1.96
                 "#
                 .as_bytes(),
-            ).unwrap();
+            )
+            .unwrap();
 
         exam.filter_by_file(&file_path).unwrap();
 
