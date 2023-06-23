@@ -1,3 +1,3 @@
 cargo +nightly fmt
 cargo build --release
-cargo doc
+cargo doc --no-deps
