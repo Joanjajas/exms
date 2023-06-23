@@ -5,7 +5,7 @@ use std::path::Path;
 use indexmap::map::IndexMap;
 use serde::Deserialize;
 
-use crate::error::{ParseError, WithPath, ParseErrorKind};
+use crate::error::{ParseError, ParseErrorKind, WithPath};
 use crate::exam::Student;
 
 /// Struct used to deserialize TOML and JSON files into a `Vec<Student>`.
