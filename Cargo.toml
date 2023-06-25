@@ -2,7 +2,7 @@
 name = "exms"
 authors = ["Author => joan"]
 description = "Get statistics and compare exams results"
-version = "0.1.5"
+version = "0.1.55"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/Joanjajas/exms"
@@ -10,15 +10,15 @@ repository = "https://github.com/Joanjajas/exms"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-indexmap = { version = "1.9.3", features = ["serde-1"] }
+indexmap = { version = "2.0.0", features = ["serde"] }
 serde = { version = "1.0.164", features = ["derive"] }
 assert_approx_eq = "1.1.0"
 prettytable = "0.10.0"
-serde_json = "1.0.97"
+serde_json = "1.0.99"
 criterion = "0.5.1"
 tempfile = "3.6.0"
 colored = "2.0.0"
-toml = "0.7.4"
+toml = "0.7.5"
 
 [[bench]]
 name = "file_parsing_bench"
