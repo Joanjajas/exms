@@ -3,6 +3,7 @@ use std::path::Path;
 
 use colored::Colorize;
 use prettytable::{format, row, Table};
+use unidecode::unidecode;
 
 use statistics::{calculate_percentiles, mean, passed_students};
 pub use student::Student;
@@ -128,7 +129,8 @@ impl Exam {
     /// ```
     // TODO: make it work with accents
     pub fn sort_by_alphabetic_order(&mut self) {
-        self.students.sort_by_key(|s| s.name.to_lowercase())
+        self.students
+            .sort_by_key(|s| unidecode(&s.name.to_lowercase()))
     }
 
     /// Filters the exam students yielding only the students which name contains
@@ -290,8 +292,8 @@ mod tests {
     fn students() -> Vec<Student> {
         return vec![
             Student::with_percentile("Joan Beltrán Peris", 4.65, 50.0),
+            Student::with_percentile("Ángel Fernández Vara", 8.7, 100.0),
             Student::with_percentile("Jose Abad Martínez", 3.6, 25.0),
-            Student::with_percentile("David Jiménez Hidalgo", 7.94, 100.0),
             Student::with_percentile("Jorge García Martínez", 5.03, 75.0),
             Student::with_percentile("Adrián Gómez García", 1.96, 0.0),
         ];
@@ -315,8 +317,8 @@ mod tests {
             r#"
             [students]
             "Joan Beltrán Peris" = 4.65
+            "Ángel Fernández Vara" = 8.7
             "Jose Abad Martínez" = 3.6
-            "David Jiménez Hidalgo" = 7.94
             "Jorge García Martínez" = 5.03
             "Adrián Gómez García" = 1.96
             "#
@@ -337,7 +339,7 @@ mod tests {
 
         exam.sort_by_grade();
 
-        assert_eq!(exam.students[0].grade, 7.94);
+        assert_eq!(exam.students[0].grade, 8.7);
         assert_eq!(exam.students[1].grade, 5.03);
         assert_eq!(exam.students[2].grade, 4.65);
         assert_eq!(exam.students[3].grade, 3.6);
@@ -352,7 +354,7 @@ mod tests {
         exam.sort_by_alphabetic_order();
 
         assert_eq!(exam.students[0].name, "Adrián Gómez García");
-        assert_eq!(exam.students[1].name, "David Jiménez Hidalgo");
+        assert_eq!(exam.students[1].name, "Ángel Fernández Vara");
         assert_eq!(exam.students[2].name, "Joan Beltrán Peris");
         assert_eq!(exam.students[3].name, "Jorge García Martínez");
         assert_eq!(exam.students[4].name, "Jose Abad Martínez");
@@ -363,12 +365,12 @@ mod tests {
         let students = students();
         let mut exam = Exam::from_student_vec(students);
 
-        exam.filter_by_name(&["joan", "abad", "jim"]);
+        exam.filter_by_name(&["joan", "abad", "var"]);
 
         assert_eq!(exam.students.len(), 3);
         assert_eq!(exam.students[0].name, "Joan Beltrán Peris");
-        assert_eq!(exam.students[1].name, "Jose Abad Martínez");
-        assert_eq!(exam.students[2].name, "David Jiménez Hidalgo");
+        assert_eq!(exam.students[1].name, "Ángel Fernández Vara");
+        assert_eq!(exam.students[2].name, "Jose Abad Martínez");
     }
 
     #[test]
