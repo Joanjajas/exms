@@ -8,7 +8,7 @@ license = "MIT"
 repository = "https://github.com/Joanjajas/exms"
 
 [dependencies]
-indexmap = { version = "2.0.0", features = ["serde"] }
+indexmap = { version = "2.0.1", features = ["serde"] }
 serde = { version = "1.0.188", features = ["derive"] }
 prettytable = "0.10.0"
 serde_json = "1.0.107"
