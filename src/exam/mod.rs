@@ -127,7 +127,6 @@ impl Exam {
     /// assert_eq!(exam.students[1].name, "Joan Beltrán Peris");
     /// assert_eq!(exam.students[2].name, "Jose Abad Martínez");
     /// ```
-    // TODO: make it work with accents
     pub fn sort_by_alphabetic_order(&mut self) {
         self.students
             .sort_by_key(|s| unidecode(&s.name.to_lowercase()))
@@ -154,7 +153,6 @@ impl Exam {
     /// assert_eq!(exam.students.len(), 2);
     /// assert_eq!(exam.students[0].name, "Joan Beltrán Peris");
     /// assert_eq!(exam.students[1].name, "David Jiménez Hidalgo");
-
     /// ```
     pub fn filter_by_name<S: AsRef<str>>(&mut self, query: &[S]) {
         self.students.retain(|student| {
