@@ -180,18 +180,20 @@ impl Exam {
     ///     let mut exam = Exam::from_file(&file_path)?;
     ///
     ///     let file_path = Path::new("students2.json");
-    ///     exam.filter_by_file(&file_path)?;
+    ///     exam.filter_by_file(&[file_path])?;
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub fn filter_by_file<P: AsRef<Path>>(&mut self, path: P) -> Result<(), ParseError> {
-        let students = parse_file(path.as_ref())?;
-        self.students.retain(|student| {
-            students
-                .iter()
-                .any(|s| s.name.to_lowercase() == student.name.to_lowercase())
-        });
+    pub fn filter_by_file<P: AsRef<Path>>(&mut self, path: &[P]) -> Result<(), ParseError> {
+        for path in path {
+            let students = parse_file(path.as_ref())?;
+            self.students.retain(|student| {
+                students
+                    .iter()
+                    .any(|s| s.name.to_lowercase() == student.name.to_lowercase())
+            });
+        }
 
         Ok(())
     }
@@ -378,9 +380,9 @@ mod tests {
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("filter.toml");
-        let mut filter_file = File::create(&file_path).unwrap();
+        let mut filter_file_1 = File::create(&file_path).unwrap();
 
-        filter_file
+        filter_file_1
             .write_all(
                 r#"
                 [students]
@@ -391,16 +393,25 @@ mod tests {
             )
             .unwrap();
 
-        exam.filter_by_file(&file_path).unwrap();
+        let file_path = dir.path().join("filter2.toml");
+        let mut filter_file_2 = File::create(&file_path).unwrap();
 
-        assert_eq!(exam.students.len(), 2);
+        filter_file_2
+            .write_all(
+                r#"
+                [students]
+                "Joan Beltrán Peris" = 4.65
+                "#
+                .as_bytes(),
+            )
+            .unwrap();
+
+        exam.filter_by_file(&[file_path]).unwrap();
+
+        assert_eq!(exam.students.len(), 1);
         assert_eq!(
             exam.students[0],
             Student::with_percentile("Joan Beltrán Peris", 4.65, 50.0)
-        );
-        assert_eq!(
-            exam.students[1],
-            Student::with_percentile("Adrián Gómez García", 1.96, 0.0)
         );
     }
 }
