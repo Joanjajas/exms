@@ -4,6 +4,7 @@ pub struct Student {
     pub name: String,
     pub grade: f32,
     pub percentile: f32,
+    pub rank: u32,
 }
 
 impl Student {
@@ -25,6 +26,7 @@ impl Student {
             name: name.into(),
             grade,
             percentile: 0.0,
+            rank: 0,
         }
     }
 
@@ -46,6 +48,7 @@ impl Student {
             name: name.into(),
             grade,
             percentile,
+            rank: 0,
         }
     }
 }

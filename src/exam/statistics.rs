@@ -67,6 +67,43 @@ pub fn calculate_percentiles(students: &mut [Student]) {
     }
 }
 
+pub fn calculate_rank(students: &mut Vec<Student>) {
+    // Create a vector of indices that represent the original order of the students
+    let total_students = students.len();
+    let mut indices: Vec<usize> = (0..total_students).collect();
+
+    // Sort the indices based on the grades of the students
+    indices.sort_by(|&a, &b| {
+        students[b]
+            .grade
+            .partial_cmp(&students[a].grade)
+            .unwrap_or(Ordering::Equal)
+    });
+
+    let mut last_grade = None;
+    let mut last_rank = None;
+    let mut rank = 0;
+
+    for &student_index in &indices {
+        let grade = students[student_index].grade;
+        let rank = match last_grade {
+            // If the current grade is the same as the last grade, use the last rank
+            Some(last_grade) if grade == last_grade => last_rank.unwrap_or(0),
+            // Otherwise, calculate the rank based on the current index and the total number
+            // of students
+            _ => {
+                rank += 1;
+                rank
+            }
+        };
+        // Set the rank field for the current student
+        students[student_index].rank = rank as u32;
+        // Update the last grade and rank seen
+        last_grade = Some(grade);
+        last_rank = Some(rank);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_approx_eq::assert_approx_eq;

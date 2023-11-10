@@ -5,7 +5,7 @@ use colored::Colorize;
 use prettytable::{format, row, Table};
 use unidecode::unidecode;
 
-use statistics::{calculate_percentiles, mean, passed_students};
+use statistics::{calculate_percentiles, calculate_rank, mean, passed_students};
 pub use student::Student;
 
 use crate::error::ParseError;
@@ -38,6 +38,7 @@ impl Exam {
     pub fn from_student_vec(mut students: Vec<Student>) -> Self {
         // Calculate the percentile of each student
         calculate_percentiles(&mut students);
+        calculate_rank(&mut students);
 
         // Create a new exam from the vector of students
         Self { students }
@@ -70,6 +71,7 @@ impl Exam {
 
         // Calculate the percentiles of the students
         calculate_percentiles(&mut students);
+        calculate_rank(&mut students);
 
         // Create a new exam from the vector of students
         Ok(Exam { students })
@@ -217,7 +219,7 @@ impl Exam {
     /// ```
     pub fn print_students(&mut self) {
         let mut table = Table::new();
-        table.set_titles(row!["Name", "Grade", "Percentile"]);
+        table.set_titles(row![c->"Name", c->"Grade", c->"Percentile", c->"Rank"]);
 
         for student in &self.students {
             let grade = student.grade;
@@ -226,7 +228,7 @@ impl Exam {
             } else {
                 grade.to_string().red()
             };
-            table.add_row(row![student.name, grade_str, student.percentile]);
+            table.add_row(row![student.name, c->grade_str, c->student.percentile, student.rank]);
         }
 
         table.set_format(*format::consts::FORMAT_BOX_CHARS);
