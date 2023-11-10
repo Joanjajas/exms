@@ -228,7 +228,7 @@ impl Exam {
             } else {
                 grade.to_string().red()
             };
-            table.add_row(row![student.name, c->grade_str, c->student.percentile, student.rank]);
+            table.add_row(row![student.name, c->grade_str, c->student.percentile, c->student.rank]);
         }
 
         table.set_format(*format::consts::FORMAT_BOX_CHARS);
