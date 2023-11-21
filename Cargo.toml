@@ -9,7 +9,7 @@ repository = "https://github.com/Joanjajas/exms"
 
 [dependencies]
 indexmap = { version = "2.1.0", features = ["serde"] }
-serde = { version = "1.0.192", features = ["derive"] }
+serde = { version = "1.0.193", features = ["derive"] }
 prettytable = "0.10.0"
 serde_json = "1.0.108"
 unidecode = "0.3.0"
