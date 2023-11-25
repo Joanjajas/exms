@@ -23,6 +23,7 @@ impl<T, E> WithPath<T, E> for Result<T, E> {
 pub struct ParseError {
     /// Kind of error occurred
     kind: ParseErrorKind,
+
     /// Path of the file that caused the error
     path: PathBuf,
 }

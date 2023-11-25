@@ -1,77 +1,45 @@
-/// Struct that represents an exam student.
+use crate::exam::statistics;
+
+/// Struct representing a student.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Student {
     pub name: String,
     pub grade: f32,
-    pub percentile: f32,
-    pub rank: u32,
+    pub rank: Option<u32>,
+    pub percentile: Option<f32>,
 }
 
 impl Student {
-    /// Create a new `Student` with the given name and grade.
+    /// Creates a new student from a given name and grade.
     ///
     /// # Examples
     ///
     /// ```
-    /// use exms::exam::Student;
+    /// use exms::exam::student::Student;
     ///
-    /// let student = Student::new("Joan Beltrán Peris", 4.6);
+    /// let student = Student::new("Joan Beltrán Peris", 9.5);
     ///
     /// assert_eq!(student.name, "Joan Beltrán Peris");
-    /// assert_eq!(student.grade, 4.6);
-    /// assert_eq!(student.percentile, 0.);
+    /// assert_eq!(student.grade, 9.5);
     /// ```
-    pub fn new<N: Into<String>>(name: N, grade: f32) -> Self {
+    pub fn new<T: Into<String>>(name: T, grade: f32) -> Student {
         Student {
             name: name.into(),
             grade,
-            percentile: 0.0,
-            rank: 0,
-        }
-    }
-
-    /// Create a new `Student` with the given name, grade and percentile.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use exms::exam::Student;
-    ///
-    /// let student = Student::with_percentile("Joan Beltrán Peris", 4.6, 50.);
-    ///
-    /// assert_eq!(student.name, "Joan Beltrán Peris");
-    /// assert_eq!(student.grade, 4.6);
-    /// assert_eq!(student.percentile, 50.);
-    /// ```
-    pub fn with_percentile<N: Into<String>>(name: N, grade: f32, percentile: f32) -> Self {
-        Student {
-            name: name.into(),
-            grade,
-            percentile,
-            rank: 0,
+            rank: None,
+            percentile: None,
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub trait AttachStatistics: Into<Vec<Student>> {
+    /// Calculates the rank and percentile of each student.
+    fn attach_statistics(&mut self);
+}
 
-    #[test]
-    fn test_student_new() {
-        let student = Student::new("Joan", 9.86);
-
-        assert_eq!(student.name, "Joan");
-        assert_eq!(student.grade, 9.86);
-        assert_eq!(student.percentile, 0.0);
-    }
-
-    #[test]
-    fn test_student_with_percentile() {
-        let student = Student::with_percentile("Joan", 9.86, 50.0);
-
-        assert_eq!(student.name, "Joan");
-        assert_eq!(student.grade, 9.86);
-        assert_eq!(student.percentile, 50.0);
+impl AttachStatistics for Vec<Student> {
+    fn attach_statistics(&mut self) {
+        statistics::rank(self);
+        statistics::percentile(self);
     }
 }

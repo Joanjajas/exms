@@ -78,13 +78,12 @@
 //!
 //!     // Here you should use your parsing function
 //!     let students: Vec<Student> = my_parsing_logic::parse(&file_path);
-//!     let exam = Exam::from_student_vec(students);
+//!     let exam = Exam::new(students, None);
 //!
 //!     Ok(())
 //! }
 //! ```
 
-// TODO: integration tests
 pub mod error;
 pub mod exam;
 pub mod input;
