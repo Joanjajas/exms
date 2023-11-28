@@ -2,7 +2,7 @@
 name = "exms"
 authors = ["Author => joan"]
 description = "Get statistics and compare exams results"
-version = "0.1.95"
+version = "0.1.96"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/Joanjajas/exms"

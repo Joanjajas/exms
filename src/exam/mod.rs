@@ -230,9 +230,19 @@ impl Exam {
                 student.grade.to_string().red()
             };
 
-            table.add_row(
-                row![student.name, c->colored_grade, c->student.percentile.unwrap_or(0.), c->student.rank.unwrap_or(0)],
-            );
+            let max_rank = self
+                .students
+                .iter()
+                .map(|s| s.rank.unwrap_or(0))
+                .max()
+                .unwrap_or(0);
+
+            table.add_row(row![
+                student.name,
+                c->colored_grade,
+                c->student.percentile.unwrap_or(0.),
+                c->format!("[{}/{}]", student.rank.unwrap_or(0), max_rank)
+            ]);
         }
 
         table.set_format(*format::consts::FORMAT_BOX_CHARS);
