@@ -35,6 +35,9 @@
 //!
 //! - `max_grade` (number): The maximum possible grade of the exam. If no value
 //!   is provided, the maximum grade will default to 10.
+//! - `name` (string): The name of the exam. If no value is provided, the file
+//!   name will be used as the name.
+//!
 //!
 //! Here are some examples of valid files:
 //!
@@ -43,6 +46,7 @@
 //! ```json
 //! {
 //!     "details": {
+//!         "name": "Exam 1",
 //!         "max_grade": 10
 //!     },
 //!
@@ -59,6 +63,7 @@
 //!
 //! ```toml
 //! [details] # This field is optional
+//! name = "Exam 1"
 //! max_grade = 10
 //!
 //! [students]

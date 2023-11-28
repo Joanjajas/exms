@@ -21,6 +21,7 @@ pub struct Exam {
     /// The students of the exam
     pub students: Vec<Student>,
 
+    name: Option<String>,
     max_grade: f32,
 }
 
@@ -48,6 +49,7 @@ impl Exam {
         Self {
             students,
             max_grade: 10.0,
+            name: None,
         }
     }
 
@@ -79,7 +81,7 @@ impl Exam {
         Ok(exam)
     }
 
-    /// Sets the maximum possible grade of the exam.
+    /// Sets the maximum achievable grade in the exam.
     ///
     /// # Examples
     ///
@@ -94,10 +96,31 @@ impl Exam {
     /// ];
     ///
     /// let mut exam = Exam::new(students);
-    /// exam.max_grade(6.0);
+    /// exam.set_max_grade(6.0);
     /// ```
-    pub fn max_grade(&mut self, max_grade: f32) {
+    pub fn set_max_grade(&mut self, max_grade: f32) {
         self.max_grade = max_grade
+    }
+
+    /// Sets the name of the exam.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use exms::exam::Exam;
+    /// use exms::exam::Student;
+    ///
+    /// let students = &[
+    ///     Student::new("Joan Beltrán Peris", 4.6),
+    ///     Student::new("Jose Abad Martínez", 3.6),
+    ///     Student::new("David Jiménez Hidalgo", 7.94),
+    /// ];
+    ///
+    /// let mut exam = Exam::new(students);
+    /// exam.set_name("Econometrics");
+    /// ```
+    pub fn set_name<S: Into<String>>(&mut self, name: S) {
+        self.name = Some(name.into())
     }
 
     /// Sorts the exam students based on their grade in descending order.
@@ -290,14 +313,14 @@ impl Exam {
     /// ];
     ///
     /// let mut exam = Exam::new(students);
-    /// exam.summary(None);
+    /// exam.summary();
     /// ```
-    pub fn summary<T: AsRef<str>>(&self, title: Option<T>) {
+    pub fn summary(&self) {
         let statistics = ExamStatistics::new(&self.students, self.max_grade);
 
-        if let Some(title) = title {
+        if let Some(exam_name) = &self.name {
             let mut table_title = Table::new();
-            table_title.add_row(row![Fc->title.as_ref()]);
+            table_title.add_row(row![Fc->exam_name]);
 
             table_title.set_format(*format::consts::FORMAT_BOX_CHARS);
             table_title.printstd();

@@ -9,12 +9,20 @@ use crate::error::{ParseError, ParseErrorKind, WithPath};
 use crate::exam::{Exam, Student};
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ExamFile {
-    details: Option<IndexMap<String, f32>>,
+    details: Option<Details>,
 
     // Using IndexMap instead of HashMap to preserve the students order of the
     // original file.
     students: IndexMap<String, f32>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Details {
+    name: Option<String>,
+    max_grade: Option<f32>,
 }
 
 // Files should follow the required format, see docs for more info.
@@ -35,10 +43,23 @@ pub fn parse_exam_file(path: &Path) -> Result<Exam, ParseError> {
         .map(|(name, grade)| Student::new(name, grade))
         .collect();
 
-    let _max_grade = exam_file
-        .details
-        .and_then(|details| details.get("max_grade").copied())
-        .unwrap_or(10.0);
+    let mut exam = Exam::new(students);
 
-    Ok(Exam::new(students))
+    if let Some(details) = exam_file.details {
+        if let Some(max_grade) = details.max_grade {
+            exam.set_max_grade(max_grade);
+        }
+
+        if let Some(exam_name) = details.name {
+            exam.set_name(exam_name);
+        } else {
+            path.file_stem()
+                .and_then(OsStr::to_str)
+                .and_then(|title| Some(exam.set_name(title)));
+        }
+
+        return Ok(exam);
+    }
+
+    Ok(exam)
 }

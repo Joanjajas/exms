@@ -1,29 +1,28 @@
+use term_size::dimensions_stdout;
+use termplot::{plot::Histogram, Domain, Plot, Size};
+
 use crate::exam::Student;
-use textplots::{AxisBuilder, Chart, LabelBuilder, LabelFormat, LineStyle, Plot, Shape};
 
 pub fn histogram(students: &[Student], max_grade: f32) {
-    let data: Vec<(f32, f32)> = students
-        .iter()
-        .map(|s| {
-            (
-                1.0,
-                if s.grade < 10.0 {
-                    s.grade + 1.0
-                } else {
-                    s.grade
-                },
-            )
-        })
-        .collect();
-    let hist = textplots::utils::histogram(&data, 0.0, max_grade + 1.0, (max_grade + 1.0) as usize);
+    let data: Vec<f64> = students.iter().map(|s| s.grade as f64).collect();
 
-    println!();
+    let mut buckets_range = vec![];
+    for i in 0..max_grade as u32 {
+        buckets_range.push(i as f64..(i + 1) as f64);
+    }
 
-    Chart::new(180, 60, 0.0, max_grade)
-        .x_axis_style(LineStyle::Solid)
-        .y_axis_style(LineStyle::Solid)
-        .x_label_format(LabelFormat::Custom(Box::new(|x| format!("{}", x))))
-        .y_label_format(LabelFormat::Custom(Box::new(|x| format!("{}", x))))
-        .lineplot(&Shape::Bars(&hist))
-        .nice();
+    let hist = Histogram::new(data, buckets_range);
+
+    let (term_width, term_height) = dimensions_stdout().unwrap_or((80, 24));
+
+    let mut plot = Plot::default();
+    plot.set_domain(Domain(0.0..max_grade as f64))
+        .set_codomain(Domain(0.0..(students.len() / 2) as f64))
+        .set_size(Size::new(term_width - (term_width / 2), term_height))
+        .set_title("Grades Histogram")
+        .set_x_label("X => [Grade Range]")
+        .set_y_label("Y => [Number of Students]")
+        .add_plot(Box::new(hist));
+
+    println!("{plot}");
 }
