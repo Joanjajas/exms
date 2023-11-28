@@ -1,12 +1,16 @@
 use crate::exam::statistics;
 
 /// Struct representing a student.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Clone)]
 pub struct Student {
+    /// Name of the student.
     pub name: String,
+
+    /// Grade of the student.
     pub grade: f32,
-    pub rank: Option<u32>,
-    pub percentile: Option<f32>,
+
+    pub(crate) rank: Option<u32>,
+    pub(crate) percentile: Option<f32>,
 }
 
 impl Student {
@@ -15,7 +19,7 @@ impl Student {
     /// # Examples
     ///
     /// ```
-    /// use exms::exam::student::Student;
+    /// use exms::exam::Student;
     ///
     /// let student = Student::new("Joan Beltrán Peris", 9.5);
     ///
@@ -33,7 +37,6 @@ impl Student {
 }
 
 pub trait AttachStatistics: Into<Vec<Student>> {
-    /// Calculates the rank and percentile of each student.
     fn attach_statistics(&mut self);
 }
 

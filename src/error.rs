@@ -5,10 +5,7 @@ use std::path::{Path, PathBuf};
 
 use colored::Colorize;
 
-/// A trait for adding a path to a result to add more context to
-/// an error
 pub(crate) trait WithPath<T, E> {
-    /// Adds a path to a result to add more context to an error
     fn with_path<P: AsRef<Path>>(self, path: P) -> Result<T, (E, P)>;
 }
 
@@ -18,18 +15,15 @@ impl<T, E> WithPath<T, E> for Result<T, E> {
     }
 }
 
-/// This type represents all possible errors that can occur while parsing a file
+/// This type represents all possible errors that can occur while parsing an
+/// exam file
 #[derive(Debug)]
 pub struct ParseError {
-    /// Kind of error occurred
     kind: ParseErrorKind,
-
-    /// Path of the file that caused the error
     path: PathBuf,
 }
 
 impl ParseError {
-    /// Creates a new `ParseError` from the kind and path provided
     pub(crate) fn new<P: AsRef<Path>>(kind: ParseErrorKind, path: P) -> Self {
         Self {
             kind,
@@ -38,23 +32,13 @@ impl ParseError {
     }
 }
 
-/// Enum that categorizes a 'exms::error::ParseError'
 #[derive(Debug)]
 pub(crate) enum ParseErrorKind {
-    /// An error encountered while opening or reading a file
     Io(io::Error),
-
-    /// An error encountered while parsing a TOML file
     Toml(toml::de::Error),
-
-    /// An error encountered while parsing a JSON file
     Json(serde_json::Error),
-
-    /// A file doesn't have any file extension
-    MissingFormat,
-
-    /// A file has an unsupported extension
     UnsupportedFormat,
+    MissingFormat,
 }
 
 impl fmt::Display for ParseError {

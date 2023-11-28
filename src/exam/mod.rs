@@ -1,5 +1,7 @@
+mod parse;
+mod plot;
 mod statistics;
-pub mod student;
+mod student;
 
 use std::cmp::Ordering;
 use std::path::Path;
@@ -9,13 +11,17 @@ use prettytable::{format, row, Table};
 use unidecode::unidecode;
 
 use crate::error::ParseError;
-use crate::input;
+use parse::parse_exam_file;
 use statistics::ExamStatistics;
-pub use student::{AttachStatistics, Student};
+use student::AttachStatistics;
+pub use student::Student;
 
+/// This type represents and exam.
 pub struct Exam {
+    /// The students of the exam
     pub students: Vec<Student>,
-    pub max_grade: f32,
+
+    max_grade: f32,
 }
 
 impl Exam {
@@ -33,15 +39,15 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let exam = Exam::new(students, None);
+    /// let exam = Exam::new(students);
     /// ```
-    pub fn new<T: Into<Vec<Student>>>(students: T, max_grade: Option<f32>) -> Self {
+    pub fn new<T: Into<Vec<Student>>>(students: T) -> Self {
         let mut students = students.into();
         students.attach_statistics();
 
         Self {
             students,
-            max_grade: max_grade.unwrap_or(10.0),
+            max_grade: 10.0,
         }
     }
 
@@ -54,12 +60,12 @@ impl Exam {
     /// # Examples
     ///
     /// ```no_run
-    /// use std::error::Error;
     /// use std::path::Path;
     ///
+    /// use exms::error::ParseError;
     /// use exms::exam::Exam;
     ///
-    /// fn main() -> Result<(), Box<dyn Error>> {
+    /// fn main() -> Result<(), ParseError> {
     ///     let file_path = Path::new("students.json");
     ///     let exam = Exam::from_file(&file_path)?;
     ///
@@ -67,10 +73,31 @@ impl Exam {
     /// }
     /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ParseError> {
-        let mut exam = input::parse_file(path.as_ref())?;
+        let mut exam = parse_exam_file(path.as_ref())?;
         exam.students.attach_statistics();
 
         Ok(exam)
+    }
+
+    /// Sets the maximum possible grade of the exam.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use exms::exam::Exam;
+    /// use exms::exam::Student;
+    ///
+    /// let students = &[
+    ///     Student::new("Joan Beltrán Peris", 4.6),
+    ///     Student::new("Jose Abad Martínez", 3.6),
+    ///     Student::new("David Jiménez Hidalgo", 7.94),
+    /// ];
+    ///
+    /// let mut exam = Exam::new(students);
+    /// exam.max_grade(6.0);
+    /// ```
+    pub fn max_grade(&mut self, max_grade: f32) {
+        self.max_grade = max_grade
     }
 
     /// Sorts the exam students based on their grade in descending order.
@@ -87,7 +114,7 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let mut exam = Exam::new(students, None);
+    /// let mut exam = Exam::new(students);
     /// exam.sort_by_grade();
     ///
     /// assert_eq!(exam.students[0].grade, 7.94);
@@ -117,7 +144,7 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let mut exam = Exam::new(students, None);
+    /// let mut exam = Exam::new(students);
     /// exam.sort_by_alphabetic_order();
     ///
     /// assert_eq!(exam.students[0].name, "David Jiménez Hidalgo");
@@ -144,24 +171,20 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let mut exam = Exam::new(students, None);
+    /// let mut exam = Exam::new(students);
     /// exam.filter_by_name(&["joan", "jorge", "jim"]);
     ///
     /// assert_eq!(exam.students.len(), 2);
     /// assert_eq!(exam.students[0].name, "Joan Beltrán Peris");
     /// assert_eq!(exam.students[1].name, "David Jiménez Hidalgo");
     /// ```
-    pub fn filter_by_name<T, S>(&mut self, query: T)
-    where
-        T: Into<Vec<S>>,
-        S: AsRef<str>,
-    {
-        let query = query.into();
-
+    pub fn filter_by_name<S: AsRef<str>>(&mut self, query: &[S]) {
         self.students.retain(|student| {
             query.iter().any(|name| {
-                let name = name.as_ref().to_lowercase();
-                student.name.to_lowercase().contains(&name)
+                student
+                    .name
+                    .to_lowercase()
+                    .contains(&name.as_ref().to_lowercase())
             })
         });
     }
@@ -173,12 +196,12 @@ impl Exam {
     /// # Examples
     ///
     /// ```no_run
-    /// use std::error::Error;
     /// use std::path::Path;
     ///
+    /// use exms::error::ParseError;
     /// use exms::exam::Exam;
     ///
-    /// fn main() -> Result<(), Box<dyn Error>> {
+    /// fn main() -> Result<(), ParseError> {
     ///     let file_path = Path::new("students.json");
     ///     let mut exam = Exam::from_file(&file_path)?;
     ///
@@ -188,10 +211,11 @@ impl Exam {
     ///     Ok(())
     /// }
     /// ```
-    pub fn filter_by_file<P: AsRef<Path>>(&mut self, path: &[P]) -> Result<(), ParseError> {
-        for path in path {
-            let exam = input::parse_file(path.as_ref())?;
+    pub fn filter_by_file<P: AsRef<Path>>(&mut self, file_paths: &[P]) -> Result<(), ParseError> {
+        for path in file_paths {
+            let exam = parse_exam_file(path.as_ref())?;
             let students = exam.students;
+
             self.students.retain(|student| {
                 students
                     .iter()
@@ -202,7 +226,8 @@ impl Exam {
         Ok(())
     }
 
-    /// Print the exam students in a well formatted table.
+    /// Print the exam students in a well formatted table with some statistical
+    /// information about each student, like the percentile, the rank, etc...
     ///
     /// # Examples
     ///
@@ -216,10 +241,10 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let mut exam = Exam::new(students, None);
-    /// exam.print_students();
+    /// let mut exam = Exam::new(students);
+    /// exam.students();
     /// ```
-    pub fn print_students(&self) {
+    pub fn students(&self) {
         let mut table = Table::new();
         table.set_titles(row![c->"Name", c->"Grade", c->"Percentile", c->"Rank"]);
 
@@ -230,7 +255,7 @@ impl Exam {
                 student.grade.to_string().red()
             };
 
-            let max_rank = self
+            let highest_rank = self
                 .students
                 .iter()
                 .map(|s| s.rank.unwrap_or(0))
@@ -241,7 +266,7 @@ impl Exam {
                 student.name,
                 c->colored_grade,
                 c->student.percentile.unwrap_or(0.),
-                c->format!("[{}/{}]", student.rank.unwrap_or(0), max_rank)
+                c->format!("[{}/{}]", student.rank.unwrap_or(0), highest_rank)
             ]);
         }
 
@@ -264,15 +289,19 @@ impl Exam {
     ///     Student::new("David Jiménez Hidalgo", 7.94),
     /// ];
     ///
-    /// let mut exam = Exam::new(students, None);
-    /// exam.print_statistics("Exam Statistics");
+    /// let mut exam = Exam::new(students);
+    /// exam.summary(None);
     /// ```
-
-    pub fn print_statistics<T: AsRef<str>>(&mut self, title: T) {
+    pub fn summary<T: AsRef<str>>(&self, title: Option<T>) {
         let statistics = ExamStatistics::new(&self.students, self.max_grade);
 
-        let mut table_title = Table::new();
-        table_title.add_row(row![Fc->title.as_ref()]);
+        if let Some(title) = title {
+            let mut table_title = Table::new();
+            table_title.add_row(row![Fc->title.as_ref()]);
+
+            table_title.set_format(*format::consts::FORMAT_BOX_CHARS);
+            table_title.printstd();
+        }
 
         let mut table = Table::new();
         table.add_row(row!["Total Students", statistics.total_students]);
@@ -289,9 +318,27 @@ impl Exam {
         table.add_row(row!["Min Grade", statistics.min_grade]);
 
         table.set_format(*format::consts::FORMAT_BOX_CHARS);
-        table_title.set_format(*format::consts::FORMAT_BOX_CHARS);
-
-        table_title.printstd();
         table.printstd();
+    }
+
+    /// Print a histogram of the exam grades.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use exms::exam::Exam;
+    /// use exms::exam::Student;
+    ///
+    /// let students = &[
+    ///     Student::new("Joan Beltrán Peris", 4.6),
+    ///     Student::new("Jose Abad Martínez", 3.6),
+    ///     Student::new("David Jiménez Hidalgo", 7.94),
+    /// ];
+    ///
+    /// let mut exam = Exam::new(students);
+    /// exam.histogram();
+    /// ```
+    pub fn histogram(&self) {
+        plot::histogram(&self.students, self.max_grade)
     }
 }
