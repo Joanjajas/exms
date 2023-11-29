@@ -17,7 +17,9 @@ pub fn histogram(students: &[Student], max_grade: f32) {
 
     let mut plot = Plot::default();
     plot.set_domain(Domain(0.0..max_grade as f64))
-        .set_codomain(Domain(0.0..(students.len() / 2) as f64))
+        .set_codomain(Domain(
+            0.0..(students.len() / (max_grade as usize / 3)) as f64,
+        ))
         .set_size(Size::new(term_width - (term_width / 2), term_height))
         .set_title("Grades Histogram")
         .set_x_label("X => [Grade Range]")
