@@ -4,18 +4,28 @@ use termplot::{plot::Histogram, Domain, Plot, Size};
 use crate::exam::Student;
 
 pub fn histogram(students: &[Student], max_grade: f32) {
-    let data: Vec<f64> = students.iter().map(|s| s.grade as f64).collect();
+    let grades: Vec<f64> = students
+        .iter()
+        .map(|s| {
+            // We subtract 0.01 to avoid the last grade to be in the next bucket
+            if s.grade == max_grade {
+                (s.grade - 0.01) as f64
+            } else {
+                s.grade as f64
+            }
+        })
+        .collect();
 
     let buckets_range = (0..max_grade as usize)
         .map(|i| i as f64..(i + 1) as f64)
         .collect();
 
-    let hist = Histogram::new(data, buckets_range);
+    let hist = Histogram::new(grades.clone(), buckets_range);
 
     let mut max_bucket_size = 0;
     let mut buckets = vec![0; max_grade as usize];
-    for student in students {
-        let bucket = student.grade as usize;
+    for grade in &grades {
+        let bucket = (grade - 1.0) as usize;
         buckets[bucket] += 1;
         if buckets[bucket] > max_bucket_size {
             max_bucket_size = buckets[bucket];
