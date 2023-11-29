@@ -1,14 +1,21 @@
+use colored::Colorize;
 use term_size::dimensions_stdout;
 use termplot::{plot::Histogram, Domain, Plot, Size};
 
 use crate::exam::Student;
 
 pub fn histogram(students: &[Student], max_grade: f32) {
+    let mut overflow = false;
+
     let grades: Vec<f64> = students
         .iter()
         .map(|s| {
-            // We subtract 0.01 to avoid the last grade to be in the next bucket
-            if s.grade == max_grade {
+            if s.grade > max_grade {
+                overflow = true;
+                (max_grade - 0.01) as f64
+                // We subtract 0.01 to avoid the last grade to be in the next
+                // bucket
+            } else if s.grade == max_grade {
                 (s.grade - 0.01) as f64
             } else {
                 s.grade as f64
@@ -25,7 +32,7 @@ pub fn histogram(students: &[Student], max_grade: f32) {
     let mut max_bucket_size = 0;
     let mut buckets = vec![0; max_grade as usize];
     for grade in &grades {
-        let bucket = (grade - 1.0) as usize;
+        let bucket = grade.floor() as usize;
         buckets[bucket] += 1;
         if buckets[bucket] > max_bucket_size {
             max_bucket_size = buckets[bucket];
@@ -44,4 +51,9 @@ pub fn histogram(students: &[Student], max_grade: f32) {
         .add_plot(Box::new(hist));
 
     println!("{plot}");
+
+    if overflow {
+        let warning = "Some grades were truncated to fit in the histogram as they were greater than the maximum grade";
+        println!("{}\n", warning.yellow());
+    }
 }

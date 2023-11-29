@@ -299,7 +299,7 @@ dependencies = [
 
 [[package]]
 name = "exms"
-version = "0.2.13"
+version = "0.2.15"
 dependencies = [
  "assert_approx_eq",
  "colored",
