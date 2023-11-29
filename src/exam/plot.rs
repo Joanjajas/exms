@@ -23,14 +23,14 @@ pub fn histogram(students: &[Student], max_grade: f32) {
         })
         .collect();
 
-    let buckets_range = (0..max_grade as usize)
+    let buckets_range = (0..max_grade.ceil() as usize)
         .map(|i| i as f64..(i + 1) as f64)
         .collect();
 
     let hist = Histogram::new(grades.clone(), buckets_range);
 
     let mut max_bucket_size = 0;
-    let mut buckets = vec![0; max_grade as usize];
+    let mut buckets = vec![0; max_grade.ceil() as usize];
     for grade in &grades {
         let bucket = grade.floor() as usize;
         buckets[bucket] += 1;
@@ -53,7 +53,9 @@ pub fn histogram(students: &[Student], max_grade: f32) {
     println!("{plot}");
 
     if overflow {
-        let warning = "Some grades were truncated to fit in the histogram as they were greater than the maximum grade";
+        let warning = "Some grades were truncated to fit in the histogram as\
+                       they were greater than the maximum grade.\n\
+                       This does not affect to the other statistics.";
         println!("{}\n", warning.yellow());
     }
 }

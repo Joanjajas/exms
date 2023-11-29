@@ -36,6 +36,8 @@ impl Student {
     }
 }
 
+// This trait should only applies to vectors of students or anything that can be
+// converted into it
 pub trait AttachStatistics: Into<Vec<Student>> {
     fn attach_statistics(&mut self);
 }
