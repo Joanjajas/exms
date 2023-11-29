@@ -48,7 +48,7 @@ fn mean(students: &[Student]) -> f32 {
         return 0.0;
     }
 
-    return grades_sum / total_students as f32;
+    grades_sum / total_students as f32
 }
 
 fn median(students: &[Student]) -> f32 {
@@ -89,7 +89,7 @@ fn std_deviation(students: &[Student], mean: f32) -> f32 {
         return 0.0;
     }
 
-    return (sum / total_students as f32).sqrt();
+    (sum / total_students as f32).sqrt()
 }
 
 fn max_student_grade(students: &[Student]) -> f32 {

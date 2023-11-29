@@ -17,11 +17,12 @@ use student::AttachStatistics;
 pub use student::Student;
 
 /// This type represents and exam.
+#[derive(Debug, Clone)]
 pub struct Exam {
     /// The students of the exam
     pub students: Vec<Student>,
 
-    name: Option<String>,
+    pub name: Option<String>,
     max_grade: f32,
 }
 

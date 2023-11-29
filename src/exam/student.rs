@@ -1,7 +1,7 @@
 use crate::exam::statistics;
 
 /// Struct representing a student.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Student {
     /// Name of the student.
     pub name: String,
