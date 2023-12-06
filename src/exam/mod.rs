@@ -6,24 +6,20 @@ mod student;
 use std::cmp::Ordering;
 use std::path::Path;
 
-use colored::Colorize;
-use prettytable::{format, row, Table};
 use unidecode::unidecode;
 
 use crate::error::ParseError;
 use parse::parse_exam_file;
 use statistics::ExamStatistics;
-use student::AttachStatistics;
 pub use student::Student;
 
 /// This type represents and exam.
 #[derive(Debug, Clone)]
 pub struct Exam {
-    /// The students of the exam
-    pub students: Vec<Student>,
-
-    pub name: Option<String>,
+    title: Option<String>,
     max_grade: f32,
+    students: Vec<Student>,
+    statistics: ExamStatistics,
 }
 
 impl Exam {
@@ -43,14 +39,15 @@ impl Exam {
     ///
     /// let exam = Exam::new(students);
     /// ```
-    pub fn new<T: Into<Vec<Student>>>(students: T) -> Self {
+    pub fn new(students: impl Into<Vec<Student>>) -> Self {
         let mut students = students.into();
-        students.attach_statistics();
+        let statistics = ExamStatistics::new(&mut students, 10.0);
 
         Self {
-            students,
+            title: None,
             max_grade: 10.0,
-            name: None,
+            students,
+            statistics,
         }
     }
 
@@ -75,11 +72,8 @@ impl Exam {
     ///     Ok(())
     /// }
     /// ```
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ParseError> {
-        let mut exam = parse_exam_file(path.as_ref())?;
-        exam.students.attach_statistics();
-
-        Ok(exam)
+    pub fn from_file(path: impl AsRef<Path>) -> Result<Self, ParseError> {
+        parse_exam_file(path.as_ref())
     }
 
     /// Sets the maximum achievable grade in the exam.
@@ -100,10 +94,11 @@ impl Exam {
     /// exam.set_max_grade(6.0);
     /// ```
     pub fn set_max_grade(&mut self, max_grade: f32) {
-        self.max_grade = max_grade
+        self.max_grade = max_grade;
+        self.statistics = ExamStatistics::new(&mut self.students, max_grade);
     }
 
-    /// Sets the name of the exam.
+    /// Sets the title of the exam.
     ///
     /// # Examples
     ///
@@ -118,10 +113,10 @@ impl Exam {
     /// ];
     ///
     /// let mut exam = Exam::new(students);
-    /// exam.set_name("Econometrics");
+    /// exam.set_title("Econometrics");
     /// ```
-    pub fn set_name<S: Into<String>>(&mut self, name: S) {
-        self.name = Some(name.into())
+    pub fn set_title(&mut self, title: impl Into<String>) {
+        self.title = Some(title.into())
     }
 
     /// Sorts the exam students based on their grade in descending order.
@@ -148,7 +143,7 @@ impl Exam {
     pub fn sort_by_grade(&mut self) {
         // Sort students by name so that students with the same grade are sorted
         // alphabetically
-        Exam::sort_by_alphabetic_order(self);
+        Self::sort_by_alphabetic_order(self);
 
         self.students
             .sort_by(|a, b| b.grade.partial_cmp(&a.grade).unwrap_or(Ordering::Equal))
@@ -269,33 +264,7 @@ impl Exam {
     /// exam.students();
     /// ```
     pub fn students(&self) {
-        let mut table = Table::new();
-        table.set_titles(row![c->"Name", c->"Grade", c->"Percentile", c->"Rank"]);
-
-        for student in &self.students {
-            let colored_grade = if student.grade >= self.max_grade / 2.0 {
-                student.grade.to_string().green()
-            } else {
-                student.grade.to_string().red()
-            };
-
-            let highest_rank = self
-                .students
-                .iter()
-                .map(|s| s.rank.unwrap_or(0))
-                .max()
-                .unwrap_or(0);
-
-            table.add_row(row![
-                student.name,
-                c->colored_grade,
-                c->student.percentile.unwrap_or(0.),
-                c->format!("[{}/{}]", student.rank.unwrap_or(0), highest_rank)
-            ]);
-        }
-
-        table.set_format(*format::consts::FORMAT_BOX_CHARS);
-        table.printstd()
+        self.statistics.students(&self.students)
     }
 
     /// Print statistical information about the exam in a well formatted table,
@@ -317,32 +286,7 @@ impl Exam {
     /// exam.summary();
     /// ```
     pub fn summary(&self) {
-        let statistics = ExamStatistics::new(&self.students, self.max_grade);
-
-        if let Some(exam_name) = &self.name {
-            let mut table_title = Table::new();
-            table_title.add_row(row![Fc->exam_name]);
-
-            table_title.set_format(*format::consts::FORMAT_BOX_CHARS);
-            table_title.printstd();
-        }
-
-        let mut table = Table::new();
-        table.add_row(row!["Total Students", statistics.total_students]);
-        table.add_row(row!["Passed Students", statistics.passed_students]);
-        table.add_row(row!["Failed Students", statistics.failed_students]);
-        table.add_row(row![
-            "Pass Percentage",
-            format!("{}%", statistics.pass_percentage)
-        ]);
-        table.add_row(row!["Mean", statistics.mean]);
-        table.add_row(row!["Median", statistics.median]);
-        table.add_row(row!["Standard Deviation", statistics.std_deviation]);
-        table.add_row(row!["Max Grade", statistics.max_grade]);
-        table.add_row(row!["Min Grade", statistics.min_grade]);
-
-        table.set_format(*format::consts::FORMAT_BOX_CHARS);
-        table.printstd();
+        self.statistics.summary(&self.title)
     }
 
     /// Print a histogram of the exam grades.
@@ -362,7 +306,7 @@ impl Exam {
     /// let mut exam = Exam::new(students);
     /// exam.histogram();
     /// ```
-    pub fn histogram(&self) {
-        plot::histogram(&self.students, self.max_grade)
+    pub fn histogram(&self, step: Option<f64>) {
+        plot::histogram(&self.students, self.max_grade, step)
     }
 }

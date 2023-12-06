@@ -44,8 +44,9 @@ pub fn parse_exam_file(path: &Path) -> Result<Exam, ParseError> {
         .collect();
 
     let mut exam = Exam::new(students);
-    if let Some(name) = path.file_stem()
-        .and_then(OsStr::to_str) { exam.set_name(name) }
+    if let Some(name) = path.file_stem().and_then(OsStr::to_str) {
+        exam.set_title(name)
+    }
 
     if let Some(details) = exam_file.details {
         if let Some(max_grade) = details.max_grade {
@@ -53,7 +54,7 @@ pub fn parse_exam_file(path: &Path) -> Result<Exam, ParseError> {
         }
 
         if let Some(exam_name) = details.name {
-            exam.set_name(exam_name);
+            exam.set_title(exam_name);
         }
 
         return Ok(exam);

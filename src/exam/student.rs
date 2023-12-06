@@ -1,5 +1,3 @@
-use crate::exam::statistics;
-
 /// Struct representing a student.
 #[derive(Debug, Clone)]
 pub struct Student {
@@ -33,18 +31,5 @@ impl Student {
             rank: None,
             percentile: None,
         }
-    }
-}
-
-// This trait should only applies to vectors of students or anything that can be
-// converted into it
-pub trait AttachStatistics: Into<Vec<Student>> {
-    fn attach_statistics(&mut self);
-}
-
-impl AttachStatistics for Vec<Student> {
-    fn attach_statistics(&mut self) {
-        statistics::rank(self);
-        statistics::percentile(self);
     }
 }
