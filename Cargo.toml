@@ -16,7 +16,7 @@ unidecode = "0.3.0"
 term_size = "0.3.2"
 termplot = "0.1.1"
 colored = "2.1.0"
-toml = "0.8.10"
+toml = "0.8.12"
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
